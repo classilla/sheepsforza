@@ -1068,12 +1068,26 @@ int main(int argc, char **argv)
 	tick_thread_cancel = false;
 	tick_thread_active = (pthread_create(&tick_thread, NULL, tick_func, NULL) == 0);
 	D(bug("Tick thread installed (%ld)\n", tick_thread));
+	if (tick_thread) {
+		struct sched_param params;
+		params.sched_priority = sched_get_priority_max(SCHED_OTHER);
+		if (pthread_setschedparam(tick_thread, SCHED_OTHER, &params)) {
+			perror("pthread_setschedparam");
+		}
+	}
 
 	// Start NVRAM watchdog thread
 	memcpy(last_xpram, XPRAM, XPRAM_SIZE);
 	nvram_thread_cancel = false;
 	nvram_thread_active = (pthread_create(&nvram_thread, NULL, nvram_func, NULL) == 0);
 	D(bug("NVRAM thread installed (%ld)\n", nvram_thread));
+	if (nvram_thread) {
+		struct sched_param params;
+		params.sched_priority = sched_get_priority_min(SCHED_OTHER);
+		if (pthread_setschedparam(nvram_thread, SCHED_OTHER, &params)) {
+			perror("pthread_setschedparam");
+		}
+	}
 
 #if !EMULATED_PPC
 	// Install SIGILL handler
