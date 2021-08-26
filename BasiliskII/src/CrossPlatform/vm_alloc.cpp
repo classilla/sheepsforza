@@ -92,7 +92,11 @@ typedef unsigned long vm_uintptr_t;
    NOTE: this is empirically determined on Linux/x86.  */
 #define MAP_BASE	0x10000000
 #else
+#if (defined(__linux__) && defined(__powerpc64__))
+#define MAP_BASE        0x30000000
+#else
 #define MAP_BASE	0x00000000
+#endif
 #endif
 static char * next_address = (char *)MAP_BASE;
 #ifdef HAVE_MMAP_ANON

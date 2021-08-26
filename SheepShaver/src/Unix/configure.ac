@@ -84,16 +84,18 @@ AC_PROG_EGREP
 AC_PATH_PROGS(FILE, [file false])
 AC_PATH_PROG(PERL, [perl])
 
-dnl Check for PowerPC target CPU.
+dnl Check for big-endian PowerPC target CPU.
 HAVE_PPC=no
-AC_MSG_CHECKING(for PowerPC target CPU)
+AC_MSG_CHECKING(for big-endian PowerPC target CPU)
 AC_EGREP_CPP(yes,
 [
+#if !defined(__LITTLE_ENDIAN__)
 #ifdef __powerpc__
   yes
 #endif
 #ifdef __ppc__
   yes
+#endif
 #endif
 ], [AC_MSG_RESULT(yes); HAVE_PPC=yes], AC_MSG_RESULT(no))
 

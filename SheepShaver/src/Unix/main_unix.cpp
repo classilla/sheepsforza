@@ -958,7 +958,7 @@ int main(int argc, char **argv)
 	}
 	memory_mapped_from_zero = false;
 	ram_rom_areas_contiguous = false;
-#if REAL_ADDRESSING && HAVE_LINKER_SCRIPT
+#if REAL_ADDRESSING && HAVE_LINKER_SCRIPT && PAGEZERO_HACK
 	if (vm_mac_acquire_fixed(0, RAMSize) == 0) {
 		D(bug("Could allocate RAM from 0x0000\n"));
 		RAMBase = 0;
