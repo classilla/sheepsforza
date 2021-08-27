@@ -1612,6 +1612,9 @@ if [[ "x$EMULATED_PPC" = "xyes" ]]; then
           x86_64)
             ac_cv_use_dyngen_precompiled=yes
             ;;
+          powerpc64le-notyet)
+            ac_cv_use_dyngen_precompiled=yes
+            ;;
           *)
             ac_cv_use_dyngen=no
             ;;

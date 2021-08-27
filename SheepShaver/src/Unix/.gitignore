@@ -17,6 +17,8 @@ basic-dyngen-ops.hpp
 ppc-dyngen-ops.hpp
 ppc-execute-impl.cpp
 dyngen
+basic-dyngen-ops-ppc64le_linux.hpp
+ppc-dyngen-ops-ppc64le_linux.hpp
 
 # Generated files from the Xcode build
 basic-dyngen-ops-x86_32.hpp

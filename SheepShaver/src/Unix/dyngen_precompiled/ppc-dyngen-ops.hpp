@@ -6,6 +6,8 @@
 #endif
 #elif defined(__i386__)
 	#include "ppc-dyngen-ops-x86_32.hpp"
+#elif defined(__powerpc64__) && defined(__LITTLE_ENDIAN__) && defined(__linux__)
+	#include "ppc-dyngen-ops-ppc64le_linux.hpp"
 #else
 	#error Unknown platform
 #endif

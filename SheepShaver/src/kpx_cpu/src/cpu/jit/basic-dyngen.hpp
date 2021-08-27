@@ -45,9 +45,9 @@ static inline void dg_set_jmp_target(uint8 *jmp_addr, uint8 *addr)
 	dg_set_jmp_target_noflush(jmp_addr, addr);
 #if defined(__powerpc__) || defined(__ppc__)
     // flush icache
-    asm volatile ("dcbst 0,%0" : : "r"(ptr) : "memory");
+    asm volatile ("dcbst 0,%0" : : "r"(jmp_addr) : "memory");
     asm volatile ("sync" : : : "memory");
-    asm volatile ("icbi 0,%0" : : "r"(ptr) : "memory");
+    asm volatile ("icbi 0,%0" : : "r"(jmp_addr) : "memory");
     asm volatile ("sync" : : : "memory");
     asm volatile ("isync" : : : "memory");
 #endif
