@@ -29,6 +29,7 @@ case $target_os in
 esac
 
 dnl Options.
+AC_ARG_ENABLE(lto,          [  --enable-lto            enable link-time optimization [default=yes]], [WANT_LTO=$enableval], [WANT_LTO=yes])
 AC_ARG_ENABLE(jit,          [  --enable-jit            enable JIT compiler [default=yes]], [WANT_JIT=$enableval], [WANT_JIT=yes])
 AC_ARG_ENABLE(ppc-emulator, [  --enable-ppc-emulator   use the selected PowerPC emulator [default=auto]], [WANT_EMULATED_PPC=$enableval], [WANT_EMULATED_PPC=auto])
 AC_ARG_ENABLE(fbdev-dga,    [  --enable-fbdev-dga      use direct frame buffer access via /dev/fb0 [default=yes]], [WANT_FBDEV_DGA=$enableval], [WANT_FBDEV_DGA=yes])
@@ -1689,6 +1690,11 @@ if [[ "x$HAVE_IPA" = "xyes" ]]; then
   CXXFLAGS="`echo $CXXFLAGS | sed -e 's/-g//g'` -O3 -OPT:Olimit=0 -IPA"
   CXXFLAGS="-LANG:std $CXXFLAGS"
   LDFLAGS="$LDFLAGS -O3 -OPT:Olimit=0 -IPA"
+fi
+
+if [[ "x$WANT_LTO" = "xyes" ]]; then
+  CFLAGS="$CFLAGS -O3 -flto"
+  CXXFLAGS="$CXXFLAGS -O3 -flto"
 fi
 
 dnl Check for linker script support
