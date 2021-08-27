@@ -1349,6 +1349,17 @@ bool SDL_monitor_desc::video_open(void)
 		printf("FATAL: cannot create redraw thread\n");
 		return false;
 	}
+#if __linux__
+	if (redraw_thread) {
+		struct sched_param params;
+		params.sched_priority = sched_get_priority_max(SCHED_OTHER)-2;
+		if (pthread_setschedparam(
+			(pthread_t)SDL_GetThreadID(redraw_thread),
+			SCHED_OTHER, &params)) {
+			perror("pthread_setschedparam");
+		}
+	}
+#endif
 #else
 	redraw_thread_active = true;
 #endif
