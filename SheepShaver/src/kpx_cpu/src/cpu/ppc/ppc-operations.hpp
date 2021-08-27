@@ -81,11 +81,59 @@ DEFINE_TEMPLATE_OP2(div, x / y);
 DEFINE_TEMPLATE_OP2(and, x & y);
 DEFINE_TEMPLATE_OP2(or,  x | y);
 DEFINE_TEMPLATE_OP2(xor, x ^ y);
+#if defined(__powerpc__)
+template< class TYPE > struct op_template_orc {
+	static inline TYPE apply(TYPE x, TYPE y) {
+		TYPE result;
+		__asm__("orc %0, %1, %2"
+			/* out */ : "=r" (result)
+			/* in */  : "r" (x), "r" (y));
+		return result;
+	}
+};
+template< class TYPE > struct op_template_andc {
+	static inline TYPE apply(TYPE x, TYPE y) {
+		TYPE result;
+		__asm__("andc %0, %1, %2"
+			/* out */ : "=r" (result)
+			/* in */  : "r" (x), "r" (y));
+		return result;
+	}
+};
+template< class TYPE > struct op_template_nand {
+	static inline TYPE apply(TYPE x, TYPE y) {
+		TYPE result;
+		__asm__("nand %0, %1, %2"
+			/* out */ : "=r" (result)
+			/* in */  : "r" (x), "r" (y));
+		return result;
+	}
+};
+template< class TYPE > struct op_template_nor {
+	static inline TYPE apply(TYPE x, TYPE y) {
+		TYPE result;
+		__asm__("nor %0, %1, %2"
+			/* out */ : "=r" (result)
+			/* in */  : "r" (x), "r" (y));
+		return result;
+	}
+};
+template< class TYPE > struct op_template_eqv {
+	static inline TYPE apply(TYPE x, TYPE y) {
+		TYPE result;
+		__asm__("eqv %0, %1, %2"
+			/* out */ : "=r" (result)
+			/* in */  : "r" (x), "r" (y));
+		return result;
+	}
+};
+#else
 DEFINE_TEMPLATE_OP2(orc, x | ~y);
 DEFINE_TEMPLATE_OP2(andc,x & ~y);
 DEFINE_TEMPLATE_OP2(nand,~(x & y));
 DEFINE_TEMPLATE_OP2(nor, ~(x | y));
 DEFINE_TEMPLATE_OP2(eqv, ~(x ^ y));
+#endif
 
 // Integer basic operations
 
