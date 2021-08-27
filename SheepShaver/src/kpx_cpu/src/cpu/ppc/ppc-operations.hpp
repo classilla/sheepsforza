@@ -129,18 +129,108 @@ DEFINE_ALIAS_OP(xor_64, xor, uint64);
 // Floating-point basic operations
 
 DEFINE_OP1(fnop, double, x);
+#if defined(__powerpc__)
+struct op_fabs {
+	static inline double apply(double x) {
+		double result;
+		__asm__("fabs %0, %1"
+			/* out */ : "=f" (result)
+			/* in  */ : "f" (x));
+		return result;
+	}
+};
+#else
 DEFINE_OP1(fabs, double, fabs(x));
+#endif
+
 DEFINE_OP2(fadd, double, x + y);
 DEFINE_OP2(fdiv, double, x / y);
+
+#if defined(__powerpc__)
+struct op_fmadd {
+	static inline double apply(double x, double y, double z) {
+		double result;
+		__asm__("fmadd %0, %1, %2, %3"
+			/* out */ : "=f" (result)
+			/* in  */ : "f" (x), "f" (y), "f" (z));
+		return result;
+	}
+};
+struct op_fmsub {
+	static inline double apply(double x, double y, double z) {
+		double result;
+		__asm__("fmsub %0, %1, %2, %3"
+			/* out */ : "=f" (result)
+			/* in  */ : "f" (x), "f" (y), "f" (z));
+		return result;
+	}
+};
+#else
 DEFINE_OP3(fmadd, double, mathlib_fmadd(x, y, z));
 DEFINE_OP3(fmsub, double, mathlib_fmsub(x, y, z));
+#endif
+
 DEFINE_OP2(fmul, double, x * y);
+
+#if defined(__powerpc__)
+struct op_fnabs {
+	static inline double apply(double x) {
+		double result;
+		__asm__("fnabs %0, %1"
+			/* out */ : "=f" (result)
+			/* in  */ : "f" (x));
+		return result;
+	}
+};
+#else
 DEFINE_OP1(fnabs, double, -fabs(x));
+#endif
+
 DEFINE_OP1(fneg, double, -x);
+
+#if defined(__powerpc__)
+struct op_fnmadd {
+	static inline double apply(double x, double y, double z) {
+		double result;
+		__asm__("fnmadd %0, %1, %2, %3"
+			/* out */ : "=f" (result)
+			/* in  */ : "f" (x), "f" (y), "f" (z));
+		return result;
+	}
+};
+struct op_fnmsub {
+	static inline double apply(double x, double y, double z) {
+		double result;
+		__asm__("fnmsub %0, %1, %2, %3"
+			/* out */ : "=f" (result)
+			/* in  */ : "f" (x), "f" (y), "f" (z));
+		return result;
+	}
+};
+struct op_fnmadds {
+	static inline double apply(double x, double y, double z) {
+		double result;
+		__asm__("fnmadds %0, %1, %2, %3"
+			/* out */ : "=f" (result)
+			/* in  */ : "f" (x), "f" (y), "f" (z));
+		return result;
+	}
+};
+struct op_fnmsubs {
+	static inline double apply(double x, double y, double z) {
+		double result;
+		__asm__("fnmsubs %0, %1, %2, %3"
+			/* out */ : "=f" (result)
+			/* in  */ : "f" (x), "f" (y), "f" (z));
+		return result;
+	}
+};
+#else
 DEFINE_OP3(fnmadd, double, -mathlib_fmadd(x, y, z));
 DEFINE_OP3(fnmsub, double, -mathlib_fmsub(x, y, z));
 DEFINE_OP3(fnmadds, double, -(float)mathlib_fmadd(x, y, z));
 DEFINE_OP3(fnmsubs, double, -(float)mathlib_fmsub(x, y, z));
+#endif
 DEFINE_OP2(fsub, double, x - y);
 DEFINE_OP3(fsel, double, (x >= 0.0) ? y : z);
 DEFINE_OP1(frim, double, floor(x));
@@ -152,8 +242,29 @@ DEFINE_OP2(fadds, float, x + y);
 DEFINE_OP2(fsubs, float, x - y);
 DEFINE_OP1(exp2, float, exp2f(x));
 DEFINE_OP1(log2, float, log2f(x));
+#if defined(__powerpc__)
+struct op_fres {
+	static inline float apply(float x) {
+		float result;
+		__asm__("fres %0, %1"
+			/* out */ : "=f" (result)
+			/* in  */ : "f" (x));
+		return result;
+	}
+};
+struct op_frsqrte {
+	static inline double apply(double x) {
+		double result;
+		__asm__("frsqrte %0, %1"
+			/* out */ : "=f" (result)
+			/* in  */ : "f" (x));
+		return result;
+	}
+};
+#else
 DEFINE_OP1(fres, float, 1 / x);
-DEFINE_OP1(frsqrte, float, 1 / sqrt(x));
+DEFINE_OP1(frsqrte, double, 1 / sqrt(x));
+#endif
 DEFINE_OP1(frsim, float, floorf(x));
 DEFINE_OP1(frsin, float, roundf(x));
 DEFINE_OP1(frsip, float, ceilf(x));
@@ -394,10 +505,16 @@ struct op_andi {
 struct op_cntlzw {
 	static inline uint32 apply(uint32 x) {
 		uint32 n;
+#if defined(__powerpc__)
+		__asm__("cntlzw %0, %1"
+			/* out */ : "=r" (n)
+			/* in */  : "r" (x));
+#else
 		uint32 m = 0x80000000;
 		for (n = 0; n < 32; n++, m >>= 1)
 			if (x & m)
 				break;
+#endif
 		return n;
 	}
 };
