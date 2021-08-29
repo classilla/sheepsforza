@@ -243,8 +243,13 @@ static void stream_func(void *arg, uint8 *stream, int stream_len)
 			// Send data to audio device
 #if defined(__LITTLE_ENDIAN__) // must be EMULATED_PPC
 			{
-				uint8 *loc = vm_do_get_real_address(
-					ReadMacInt32(apple_stream_info +
+				uint8 *loc =
+#if defined(SHEEPSHAVER)
+					vm_do_get_real_address
+#else
+					(uint8 *)
+#endif
+					(ReadMacInt32(apple_stream_info +
 						scd_buffer));
 				size_t i=0;
 				for(i=0;i<work_size;i+=2) {
