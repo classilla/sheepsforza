@@ -973,7 +973,7 @@ int main(int argc, char **argv)
 		// Various accesses occur to addresses in this range. "Just"
 		// mapping it is kludgey, but simple, and works on both 4K
 		// and 64K page systems.
-		if (vm_mac_acquire_fixed(0, 0x00300000) < 0) {
+		if (vm_mac_acquire_fixed(0, 0x00400000) < 0) {
 #else
 		if (vm_mac_acquire_fixed(0, 0x3000) < 0) {
 #endif
