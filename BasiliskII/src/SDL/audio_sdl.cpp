@@ -92,7 +92,7 @@ static bool open_sdl_audio(void)
 	SDL_AudioSpec audio_spec;
 	memset(&audio_spec, 0, sizeof(audio_spec));
 	audio_spec.freq = audio_sample_rates[audio_sample_rate_index] >> 16;
-	audio_spec.format = (audio_sample_sizes[audio_sample_size_index] == 8) ? AUDIO_U8 : AUDIO_S16MSB;
+	audio_spec.format = (audio_sample_sizes[audio_sample_size_index] == 8) ? AUDIO_U8 : AUDIO_S16SYS;
 	audio_spec.channels = audio_channel_counts[audio_channel_count_index];
 	audio_spec.samples = 4096 >> PrefsFindInt32("sound_buffer");
 	audio_spec.callback = stream_func;
@@ -241,7 +241,20 @@ static void stream_func(void *arg, uint8 *stream, int stream_len)
 				goto silence;
 
 			// Send data to audio device
+#if defined(__LITTLE_ENDIAN__) // must be EMULATED_PPC
+			{
+				uint8 *loc = vm_do_get_real_address(
+					ReadMacInt32(apple_stream_info +
+						scd_buffer));
+				size_t i=0;
+				for(i=0;i<work_size;i+=2) {
+					audio_mix_buf[i] = loc[i+1];
+					audio_mix_buf[i+1] = loc[i];
+				}
+			}
+#else
 			Mac2Host_memcpy(audio_mix_buf, ReadMacInt32(apple_stream_info + scd_buffer), work_size);
+#endif
 			memset((uint8 *)stream, silence_byte, stream_len);
 			SDL_MixAudio(stream, audio_mix_buf, work_size, audio_volume);
 
