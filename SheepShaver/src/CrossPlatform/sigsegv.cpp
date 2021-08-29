@@ -2754,6 +2754,7 @@ static bool handle_badaccess(SIGSEGV_FAULT_HANDLER_ARGLIST_1)
 		break;
 	}
 
+fprintf(stderr,"unhandled access to address 0x%lx\n", SI.addr);
 	return false;
 }
 

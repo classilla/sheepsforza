@@ -91,12 +91,12 @@ typedef unsigned long vm_uintptr_t;
    don't get addresses above when the program is run on AMD64.
    NOTE: this is empirically determined on Linux/x86.  */
 #define MAP_BASE	0x10000000
-#else
-#if (defined(__linux__) && defined(__powerpc64__))
-#define MAP_BASE        0x30000000
+#elif (defined(__linux__) && defined(__powerpc64__))
+// Empirically determed on Fedora 34 ppc64le. Generally needs to be at least
+// this value; executable code maps in at 0x10000000.
+#define MAP_BASE        0x18000000
 #else
 #define MAP_BASE	0x00000000
-#endif
 #endif
 static char * next_address = (char *)MAP_BASE;
 #ifdef HAVE_MMAP_ANON

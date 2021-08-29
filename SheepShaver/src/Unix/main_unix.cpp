@@ -114,7 +114,7 @@
 #include "sigregs.h"
 #include "rpc.h"
 
-#define DEBUG 0
+#define DEBUG 1
 #include "debug.h"
 
 
@@ -969,9 +969,19 @@ int main(int argc, char **argv)
 	if (!memory_mapped_from_zero) {
 #ifndef PAGEZERO_HACK
 		// Create Low Memory area (0x0000..0x3000)
+#if defined(__powerpc64__)
+		// Various accesses occur to addresses in this range. "Just"
+		// mapping it is kludgey, but simple, and works on both 4K
+		// and 64K page systems.
+		if (vm_mac_acquire_fixed(0, 0x00300000) < 0) {
+#else
 		if (vm_mac_acquire_fixed(0, 0x3000) < 0) {
+#endif
 			sprintf(str, GetString(STR_LOW_MEM_MMAP_ERR), strerror(errno));
 			ErrorAlert(str);
+#if defined(__linux__)
+			ErrorAlert("... did you remember to sysctl vm.mmap_min_addr=0 ?");
+#endif
 			goto quit;
 		}
 		lm_area_mapped = true;
