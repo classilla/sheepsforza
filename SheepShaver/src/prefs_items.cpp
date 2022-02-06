@@ -97,6 +97,7 @@ void AddPrefsDefaults(void)
 	PrefsAddBool("noclipconversion", false);
 	PrefsAddBool("ignoresegv", true);
 	PrefsAddBool("ignoreillegal", false);
+	PrefsAddBool("hardcursor", true);
 
 #if USE_JIT
 	// JIT compiler specific options

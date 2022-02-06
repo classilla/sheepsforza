@@ -1008,6 +1008,12 @@ static void tb_keycodes(GtkWidget *widget)
 	set_input_sensitive();
 }
 
+// "Use Hardware Cursor" button toggled
+static void tb_hardcursor(GtkWidget *widget)
+{
+	PrefsReplaceBool("hardcursor", GTK_TOGGLE_BUTTON(widget)->active);
+}
+
 // "Mouse Wheel Mode" selected
 static void mn_wheel_page(...) {PrefsReplaceInt32("mousewheelmode", 0); set_input_sensitive();}
 static void mn_wheel_cursor(...) {PrefsReplaceInt32("mousewheelmode", 1); set_input_sensitive();}
@@ -1031,6 +1037,8 @@ static void create_input_pane(GtkWidget *top)
 	GtkObject *adj;
 
 	box = make_pane(top, STR_INPUT_PANE_TITLE);
+
+	make_checkbox(box, STR_HARDCURSOR_CTRL, "hardcursor", GTK_SIGNAL_FUNC(tb_hardcursor));
 
 	make_checkbox(box, STR_KEYCODES_CTRL, "keycodes", GTK_SIGNAL_FUNC(tb_keycodes));
 
