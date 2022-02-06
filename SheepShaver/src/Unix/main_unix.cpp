@@ -1500,7 +1500,8 @@ static void *tick_func(void *arg)
 #endif
 
 		// Pseudo Mac 1Hz interrupt, update local time
-		if (++tick_counter > 60) {
+		// Do this a little more frequently "3Hz."
+		if (++tick_counter > 20) {
 			tick_counter = 0;
 			WriteMacInt32(0x20c, TimerDateTime());
 		}
