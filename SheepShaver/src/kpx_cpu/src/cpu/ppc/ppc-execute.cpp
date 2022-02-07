@@ -848,7 +848,48 @@ void powerpc_cpu::execute_fp_int_convert(uint32 opcode)
 
 	// Convert to integer word if operand fits bounds
 	if (b >= -(double)0x80000000 && b <= (double)0x7fffffff) {
-#if defined mathlib_lrint
+#if __POWER9_VECTOR__
+		double q; /* throwaway temp, or b may be clobbered */
+		switch (r) {
+		case 0:
+			__asm__(
+				"frin %1, %2\n"
+				"fctiwz %1, %1\n"
+				"mffprd %0, %1\n"
+				:"=r"(d.j),"=d"(q)
+				:"d"(b)
+			);
+			break;
+		case 1:
+			__asm__(
+				"fctiwz %1, %2\n"
+				"mffprd %0, %1\n"
+				:"=r"(d.j),"=d"(q)
+				:"d"(b)
+			);
+			break;
+		case 2:
+			__asm__(
+				"frip %1, %2\n"
+				"fctiwz %1, %1\n"
+				"mffprd %0, %1\n"
+				:"=r"(d.j),"=d"(q)
+				:"d"(b)
+			);
+			break;
+		case 3:
+			__asm__(
+				"frim %1, %2\n"
+				"fctiwz %1, %1\n"
+				"mffprd %0, %1\n"
+				:"=r"(d.j),"=d"(q)
+				:"d"(b)
+			);
+			break;
+		}
+		d.j = (int32)d.j;
+#else
+#if defined(mathlib_lrint) && !defined(__POWER9_VECTOR__)
 		int old_round = fegetround();
 		fesetround(ppc_to_native_rounding_mode(r));
 		d.j = (int32)mathlib_lrint(b);
@@ -860,6 +901,7 @@ void powerpc_cpu::execute_fp_int_convert(uint32 opcode)
 		case 2: d.j = (int32)op_frip::apply(b); break; // +inf
 		case 3: d.j = (int32)op_frim::apply(b); break; // -inf
 		}
+#endif
 #endif
 	}
 

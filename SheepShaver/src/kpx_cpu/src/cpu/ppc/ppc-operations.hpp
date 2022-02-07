@@ -279,12 +279,53 @@ DEFINE_OP3(fnmsub, double, -mathlib_fmsub(x, y, z));
 DEFINE_OP3(fnmadds, double, -(float)mathlib_fmadd(x, y, z));
 DEFINE_OP3(fnmsubs, double, -(float)mathlib_fmsub(x, y, z));
 #endif
+
 DEFINE_OP2(fsub, double, x - y);
 DEFINE_OP3(fsel, double, (x >= 0.0) ? y : z);
+
+#if defined(__POWER9_VECTOR__)
+struct op_frim {
+	static inline double apply(double x) {
+		double result;
+		__asm__("frim %0, %1"
+			/* out */ : "=d" (result)
+			/* in  */ : "d" (x));
+		return result;
+	}
+};
+struct op_frin {
+	static inline double apply(double x) {
+		double result;
+		__asm__("frin %0, %1"
+			/* out */ : "=d" (result)
+			/* in  */ : "d" (x));
+		return result;
+	}
+};
+struct op_frip {
+	static inline double apply(double x) {
+		double result;
+		__asm__("frip %0, %1"
+			/* out */ : "=d" (result)
+			/* in  */ : "d" (x));
+		return result;
+	}
+};
+struct op_friz {
+	static inline double apply(double x) {
+		double result;
+		__asm__("friz %0, %1"
+			/* out */ : "=d" (result)
+			/* in  */ : "d" (x));
+		return result;
+	}
+};
+#else
 DEFINE_OP1(frim, double, floor(x));
 DEFINE_OP1(frin, double, round(x));
 DEFINE_OP1(frip, double, ceil(x));
 DEFINE_OP1(friz, double, trunc(x));
+#endif
 
 DEFINE_OP2(fadds, float, x + y);
 DEFINE_OP2(fsubs, float, x - y);
