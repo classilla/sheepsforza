@@ -1700,6 +1700,17 @@ if [[ "x$WANT_LTO" = "xyes" ]]; then
   CXXFLAGS="$CXXFLAGS -O3 -flto"
 fi
 
+if   grep -q 'POWER8' /proc/cpuinfo >/dev/null 2>&1; then
+  echo 'POWER8 CPU detected'
+  CFLAGS="$CFLAGS -mcpu=power8"
+  CXXFLAGS="$CXXFLAGS -mcpu=power8"
+fi
+if   grep -q 'POWER9' /proc/cpuinfo >/dev/null 2>&1; then
+  echo 'POWER9 CPU detected'
+  CFLAGS="$CFLAGS -mcpu=power9"
+  CXXFLAGS="$CXXFLAGS -mcpu=power9"
+fi
+
 dnl Check for linker script support
 case $target_os:$target_cpu in
 linux*:i?86)    LINKER_SCRIPT_FLAGS="-Wl,-T,ldscripts/linux-i386.ld";;
