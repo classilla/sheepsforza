@@ -1014,6 +1014,18 @@ static void tb_hardcursor(GtkWidget *widget)
 	PrefsReplaceBool("hardcursor", GTK_TOGGLE_BUTTON(widget)->active);
 }
 
+// "Intercept All Key Combinations" button toggled
+static void tb_graballkeys(GtkWidget *widget)
+{
+	PrefsReplaceBool("graballkeys", GTK_TOGGLE_BUTTON(widget)->active);
+}
+
+// "Swap Option/Command" button toggled
+static void tb_swap_opt_cmd(GtkWidget *widget)
+{
+	PrefsReplaceBool("swap_opt_cmd", GTK_TOGGLE_BUTTON(widget)->active);
+}
+
 // "Mouse Wheel Mode" selected
 static void mn_wheel_page(...) {PrefsReplaceInt32("mousewheelmode", 0); set_input_sensitive();}
 static void mn_wheel_cursor(...) {PrefsReplaceInt32("mousewheelmode", 1); set_input_sensitive();}
@@ -1039,6 +1051,10 @@ static void create_input_pane(GtkWidget *top)
 	box = make_pane(top, STR_INPUT_PANE_TITLE);
 
 	make_checkbox(box, STR_HARDCURSOR_CTRL, "hardcursor", GTK_SIGNAL_FUNC(tb_hardcursor));
+
+	make_checkbox(box, STR_GRABALLKEYS_CTRL, "graballkeys", GTK_SIGNAL_FUNC(tb_graballkeys));
+
+	make_checkbox(box, STR_SWAPOPTCMD_CTRL, "swap_opt_cmd", GTK_SIGNAL_FUNC(tb_swap_opt_cmd));
 
 	make_checkbox(box, STR_KEYCODES_CTRL, "keycodes", GTK_SIGNAL_FUNC(tb_keycodes));
 

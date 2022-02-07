@@ -771,6 +771,7 @@ static SDL_Surface * init_sdl_video(int width, int height, int bpp, Uint32 flags
 		set_window_name();
 	}
 	if (flags & SDL_WINDOW_FULLSCREEN) SDL_SetWindowGrab(sdl_window, SDL_TRUE);
+	SDL_SetWindowKeyboardGrab(sdl_window, PrefsFindBool("graballkeys") ? SDL_TRUE : SDL_FALSE);
 	
 	// Some SDL events (regarding some native-window events), need processing
 	// as they are generated.  SDL2 has a facility, SDL_AddEventWatch(), which
@@ -2416,7 +2417,28 @@ static void handle_events(void)
 
 			// Window "close" widget clicked
 			case SDL_QUIT:
-				if (SDL_GetModState() & (KMOD_LALT | KMOD_RALT)) break;
+				// Prevent Cmd-Q from conflicting
+				if (!swap_opt_cmd()) {
+					// Probably one of those actual
+					// Mac users on a real Mac keyboard.
+					// If so, I, I mean, they may have
+					// Cmd-Q mapped to close apps, but
+					// they want it to be passed to the
+					// emulated Mac. I mean, maybe.
+					if (SDL_GetModState() &
+						(KMOD_LGUI | KMOD_RGUI)) {
+						// Send a Q up and down.
+						ADBKeyDown(0x0c);
+						ADBKeyUp(0x0c);
+						break;
+					}
+				}
+				// Ignore if other modifiers are down except
+				// Ctrl (for use as programmer's key).
+				if (SDL_GetModState() & (KMOD_LALT | KMOD_RALT | KMOD_LGUI | KMOD_RGUI)) break;
+
+				// Send an ADB power key notification, hit
+				// handler
 				ADBKeyDown(0x7f);	// Power key
 				ADBKeyUp(0x7f);
 				break;

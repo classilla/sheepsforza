@@ -59,6 +59,7 @@ prefs_desc common_prefs_items[] = {
 	{"jit68k", TYPE_BOOLEAN, false,     "enable 68k DR emulator"},
 	{"keyboardtype", TYPE_INT32, false, "hardware keyboard type"},
 	{"hardcursor", TYPE_BOOLEAN, false, "hardware mouse cursor"},
+	{"graballkeys", TYPE_BOOLEAN, false,"intercept all key combinations"},
 	{"hotkey", TYPE_INT32, false,       "hotkey modifier"},
 	{"scale_nearest",TYPE_BOOLEAN,false,"nearest neighbor scaling"},
 	{"scale_integer",TYPE_BOOLEAN,false,"integer scaling"},
@@ -109,9 +110,6 @@ void AddPrefsDefaults(void)
 
 	PrefsAddInt32("keyboardtype", 5);
 
-#ifdef __APPLE__
 	PrefsAddBool("swap_opt_cmd", false);
-#else
-	PrefsAddBool("swap_opt_cmd", true);
-#endif
+	PrefsAddBool("graballkeys", true);
 }
