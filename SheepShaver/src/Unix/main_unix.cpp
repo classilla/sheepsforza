@@ -1306,9 +1306,6 @@ static void *emul_func(void *arg)
 	// We're now ready to receive signals
 	ready_for_signals = true;
 
-	// Decrease priority, so more time-critical things like audio will work better
-	nice(1);
-
 	// Jump to ROM boot routine
 	D(bug("Jumping to ROM\n"));
 #if EMULATED_PPC

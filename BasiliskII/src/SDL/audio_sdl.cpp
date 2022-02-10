@@ -252,6 +252,14 @@ static void stream_func(void *arg, uint8 *stream, int stream_len)
 					(ReadMacInt32(apple_stream_info +
 						scd_buffer));
 				size_t i=0;
+				if (!(work_size & 3)) {
+				  for(i=0;i<work_size;i+=4) {
+					audio_mix_buf[i] = loc[i+1];
+					audio_mix_buf[i+1] = loc[i];
+					audio_mix_buf[i+2] = loc[i+3];
+					audio_mix_buf[i+3] = loc[i+2];
+				  }
+				} else
 				for(i=0;i<work_size;i+=2) {
 					audio_mix_buf[i] = loc[i+1];
 					audio_mix_buf[i+1] = loc[i];
