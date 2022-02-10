@@ -160,6 +160,12 @@ public:
 	// Execute 68k routine
 	void execute_68k(uint32 entry, M68kRegisters *r);
 
+	// Execute terminal 68k trap on blue task
+	uint16 trap68k;
+	M68kRegisters trap68kregs;
+	void prepare_68k_trap(uint16 code, M68kRegisters *r);
+	void spring_68k_trap();
+
 	// Execute ppc routine
 	void execute_ppc(uint32 entry);
 
@@ -273,8 +279,12 @@ void sheepshaver_cpu::execute_sheep(uint32 opcode)
 		break;
 
 	default:	// EMUL_OP
+		trap68k = 0;
 		execute_emul_op(EMUL_OP_field::extract(opcode) - 3);
-		pc() += 4;
+		if (trap68k) {
+			spring_68k_trap();
+		} else
+			pc() += 4;
 		break;
 	}
 }
@@ -622,6 +632,58 @@ void sheepshaver_cpu::execute_68k(uint32 entry, M68kRegisters *r)
 	exec68k_time += (clock() - exec68k_start);
 #endif
 }
+
+// Tee up an A-line or F-line trap on the main blue task. This only supports
+// ones that don't return, like ExitToShell and SysError, and only the traps
+// that don't require supervisor instructions.
+void sheepshaver_cpu::prepare_68k_trap(uint16 code, M68kRegisters *r)
+{
+	trap68k = code;
+fprintf(stderr, "Trap set: %d\n", trap68k);
+	for (int i=0; i<8; i++)
+		trap68kregs.d[i] = r->d[i];
+	for (int i=0; i<7; i++)
+		trap68kregs.a[i] = r->a[i];
+}
+
+// Actually do it, on exit from execute_sheep.
+void sheepshaver_cpu::spring_68k_trap()
+{
+	// Everything is in trap68k and trap68kregs.
+	// Setup registers for 68k emulator
+	cr().set(CR_SO_field<2>::mask());			// Supervisor mode
+	for (int i = 0; i < 8; i++)					// d[0]..d[7]
+	  gpr(8 + i) = trap68kregs.d[i];
+	for (int i = 0; i < 7; i++)					// a[0]..a[6]
+	  gpr(16 + i) = trap68kregs.a[i];
+	gpr(23) = 0;
+
+	SheepVar proc_var(4);
+	uint32 proc = proc_var.addr();
+	WriteMacInt16(proc, trap68k);
+	WriteMacInt16(proc + 2, M68K_RTS);
+	gpr(24) = proc;
+	gpr(25) = ReadMacInt32(XLM_68K_R25);		// MSB of SR
+	gpr(26) = 0;
+	gpr(28) = 0;								// VBR
+	gpr(29) = ReadMacInt32(KERNEL_DATA_BASE + 0x1074);		// Pointer to opcode table
+	gpr(30) = ReadMacInt32(KERNEL_DATA_BASE + 0x1078);		// Address of emulator
+	gpr(31) = KernelDataAddr + 0x1000;
+
+	// Re-entering 68k emulator
+	WriteMacInt32(XLM_RUN_MODE, MODE_68K);
+
+	// Set r0 to 0 for 68k emulator
+	gpr(0) = 0;
+
+	// Set PC to execute 68K opcode on next tick of main processor loop
+	gpr(24) += 2;
+	gpr(27) = M68K_RTS;
+	gpr(29) += trap68k * 8;
+	pc() = gpr(29);
+fprintf(stderr, "Trap sprung, pc = 0x%08x (%08x)\n", (uint32)pc(), ReadMacInt32(pc()));
+}
+
 
 // Call MacOS PPC code
 uint32 sheepshaver_cpu::execute_macos_code(uint32 tvect, int nargs, uint32 const *args)
@@ -1198,6 +1260,15 @@ void Execute68kTrap(uint16 trap, M68kRegisters *r)
 	WriteMacInt16(proc, trap);
 	WriteMacInt16(proc + 2, M68K_RTS);
 	Execute68k(proc, r);
+}
+
+/*
+ * Request a 68k A-line trap on main task (on next tick)
+ */
+
+void Prepare68kTrap(uint16 trap, M68kRegisters *r)
+{
+	ppc_cpu->prepare_68k_trap(trap, r);
 }
 
 /*

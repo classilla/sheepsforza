@@ -174,6 +174,11 @@ void EmulOp(M68kRegisters *r, uint32 pc, int selector)
 			break;
 		case OP_DISK_STATUS:
 			r->d[0] = DiskStatus(r->a[0], r->a[1]);
+			if (r->d[0] == noNybErr) { // a very unlikely code
+				// This doesn't work right yet.
+				r->d[0] = 20002; // dsForcedQuit
+				Prepare68kTrap(0xa9c9, r); // SysError
+			}
 			break;
 
 		case OP_CDROM_OPEN:			// CD-ROM driver functions

@@ -465,6 +465,14 @@ int16 DiskStatus(uint32 pb, uint32 dce)
 					} else
 						WriteMacInt32(pb + csParam + 4, FOURCC('d','i','s','k'));
 					break;
+				case FOURCC('d','A','P','I'):   // Device API
+					// Strangely, the Startup Disk CDEV
+					// doesn't actually check this, but
+					// MoreDisks does, so we include it.
+					// partitionCmds + short, no partition
+					// control support
+					WriteMacInt32(pb + csParam + 4, 0);
+					break;
 				case FOURCC('i','n','t','f'):	// Interface type
 					WriteMacInt32(pb + csParam + 4, EMULATOR_ID_4);
 					break;
@@ -506,6 +514,9 @@ int16 DiskStatus(uint32 pb, uint32 dce)
 
 	// Drive-specific codes
 	switch (code) {
+		case 6:
+			return noErr;
+
 		case 8:		// Get drive status
 			Mac2Mac_memcpy(pb + csParam, info->status, 22);
 			return noErr;
@@ -521,6 +532,37 @@ int16 DiskStatus(uint32 pb, uint32 dce)
 		case 46: // get partition mount status: http://developer.apple.com/documentation/Hardware/DeviceManagers/ata/ata_ref/ATA.22.html
 			printf("WARNING: DiskStatus(46:'get partition mount status') Not Implemented\n");
 			return statusErr;
+
+		case 51: {
+			// Startup Disk uses this. "The kGetPartInfo status
+			// call returns information about a partition in the
+			// partInfoRec structure described earlier in
+			// ProhibitMounting Control Call. In response to this
+			// call, your disk driver must place partition
+			// information about the specified drive in the
+			// partition information record pointed to by
+			// csParam[0..1]" (Designing PCI Cards and Drivers for
+			// Power Macintosh Computers, p238).
+			//
+			// typedef struct partInfoRec {
+			//     DeviceIdent SCSIID {
+			//        UInt8 diReserved;
+			//        UInt8 bus;
+			//        UInt8 targetID;
+			//        UInt8 LUN;
+			//     } union ataDeviceID {
+			//     unsigned long physPartitionLoc;
+			//     unsigned long partitionNumber;
+			// } partInfoRec, *partInfoRecPtr;
+			//
+			// Let's just zero it out.
+
+			printf("WARNING: Don't run Startup Disk.\n");
+			uint32 pIR = ReadMacInt32(pb + csParam);
+			WriteMacInt32(pIR, 0);
+			WriteMacInt32(pIR + 4, 0);
+			return noErr;
+		}
 
 		case 70: // get power mode status: http://developer.apple.com/documentation/Hardware/DeviceManagers/ata/ata_ref/ATA.24.html
 			printf("WARNING: DiskStatus(70:'get power mode status') Not Implemented\n");
