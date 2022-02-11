@@ -848,7 +848,7 @@ void powerpc_cpu::execute_fp_int_convert(uint32 opcode)
 
 	// Convert to integer word if operand fits bounds
 	if (b >= -(double)0x80000000 && b <= (double)0x7fffffff) {
-#if __POWER9_VECTOR__
+#if __POWER8_VECTOR__
 		double q; /* throwaway temp, or b may be clobbered */
 		switch (r) {
 		case 0:
