@@ -42,8 +42,8 @@
 
 // Common string definitions
 user_string_def common_strings[] = {
-	{STR_ABOUT_TEXT1, "SheepShaver V%d.%d"},
-	{STR_ABOUT_TEXT2, "by Christian Bauer and Mar\"c\" Hellwig"},
+	{STR_ABOUT_TEXT1, "SheepShaver for OpenPOWER V%d.%d \"SheepSforza\""},
+	{STR_ABOUT_TEXT2, "by Cameron Kaiser, Christian Bauer and Mar\"c\" Hellwig"},
 	{STR_READING_ROM_FILE, "Reading ROM file...\n"},
 	{STR_SHELL_ERROR_PREFIX, "ERROR: %s\n"},
 	{STR_GUI_ERROR_PREFIX, "SheepShaver error:\n%s"},
