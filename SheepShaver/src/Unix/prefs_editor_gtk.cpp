@@ -371,10 +371,12 @@ static void mn_about(...)
 
 	char str[512];
 	sprintf(str,
+		"SheepSforza based on\n"
 		"SheepShaver\nVersion %d.%d\n\n"
+		"Copyright (C) 2022 Cameron Kaiser\n"
 		"Copyright (C) 1997-2008 Christian Bauer and Marc Hellwig\n"
-		"E-mail: cb@cebix.net\n"
-		"http://sheepshaver.cebix.net/\n\n"
+		"All rights reserved.\n"
+		"https://github.com/classilla/sheepsforza\n\n"
 		"SheepShaver comes with ABSOLUTELY NO\n"
 		"WARRANTY. This is free software, and\n"
 		"you are welcome to redistribute it\n"
