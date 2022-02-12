@@ -949,7 +949,49 @@ template< class FP >
 void powerpc_cpu::fp_classify(FP x)
 {
 	uint32 c = fpscr() & ~FPSCR_FPRF_field::mask();
+#if __POWER8_VECTOR__
+	// fpclassify is apparently pretty bad on gcc, see
+	// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=97786
+	FPCLASSIFY_RETURN_T fc;
+	double derp = 1.0d;
+
+	// ftdiv sets CRx:GT to true if register A is Inf, or register B
+	// is Zero, Inf or denormalized.
+	// ftdiv sets CRx:EQ to true if register A is NaN or Inf, or
+	// register B is Zero, NaN or Inf, or other conditions we don't
+	// really care about here.
+	// Use a dummy float with known properties.
+	//
+	// Ass-U-me that
+	//     FP_NAN = 0, FP_INFINITE = 1, FP_ZERO = 2, FP_SUBNORMAL = 3,
+	//     FP_NORMAL = 4 (from math.h)
+
+	__asm__ volatile(
+
+		// check infinity
+		"ftdiv 0,%1,%2\n"
+		"li %0,1\n"
+		"bgt 1f\n"
+		// not infinity. check NaN
+		"li %0,0\n"
+		"beq 1f\n"
+		// not Inf or NaN. check Zero
+		"ftdiv 0,%2,%1\n"
+		"li %0,2\n"
+		"beq 1f\n"
+		// not Inf, NaN or Zero. check Denorm
+		"li %0,3\n"
+		"bgt 1f\n"
+		// we win
+		"li %0,4\n"
+		"1: nop\n"
+
+	: "=r"(fc)
+	: "f"(x), "f"(derp));
+
+#else
 	FPCLASSIFY_RETURN_T fc = fpclassify(x);
+#endif
 	switch (fc) {
 	case FP_NAN:
 		c |= FPSCR_FPRF_FU_field::mask() | FPSCR_FPRF_C_field::mask();
