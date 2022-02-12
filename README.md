@@ -1,89 +1,69 @@
-#### BasiliskII
-```
-macOS     x86_64 JIT / arm64 non-JIT
-Linux x86 x86_64 JIT
-MinGW x86        JIT
-```
-#### SheepShaver
-```
-macOS     x86_64 JIT / arm64 non-JIT
-Linux x86 x86_64 JIT
-MinGW x86        JIT
-```
-### How To Build
-These builds need to be installed SDL2.0.14+ framework/library.
-#### BasiliskII
-##### macOS
-preparation:
+# SheepSforza
 
-Download gmp-6.2.1.tar.xz from https://gmplib.org.
-```
-$ cd ~/Downloads
-$ tar xf gmp-6.2.1.tar.xz
-$ cd gmp-6.2.1
-$ ./configure --disable-shared
-$ make
-$ make check
-$ sudo make install
-```
-Download mpfr-4.1.0.tar.xz from https://www.mpfr.org.
-```
-$ cd ~/Downloads
-$ tar xf mpfr-4.1.0.tar.xz
-$ cd mpfr-4.1.0
-$ ./configure --disable-shared
-$ make
-$ make check
-$ sudo make install
-```
-On an Intel Mac, change the `configure` command for both GMP and MPFR as follows, and ignore the `make check` command:
-```
-CFLAGS="-arch arm64" CXXFLAGS="$CFLAGS" ./configure -host=aarch64-apple-darwin --disable-shared 
-```
-(from https://github.com/kanjitalk755/macemu/pull/96)
+SheepSforza is an OpenPOWER-enhanced version of SheepShaver V2.5, incorporating `kanjitalk755`'s 64-bit fixes, intended for POWER8 and POWER9 systems running in little-endian mode. Like SheepShaver, it supports up to Mac OS 9.0.4. It is released under the GNU General Public License v2.
 
-build:
-```
-$ cd macemu/BasiliskII/src/MacOSX
-$ xcodebuild build -project BasiliskII.xcodeproj -configuration Release
-```
-or same as Linux (x86_64 only)
+Copyright (C) 2022 Cameron Kaiser.\
+Copyright (C) 1997-2008 Christian Bauer and Marc Hellwig.\
+All rights reserved.
 
-##### Linux(x86/x86_64)
-```
-$ cd macemu/BasiliskII/src/Unix
-$ ./autogen.sh
-$ make
-```
-##### MinGW32/MSYS2
-```
-$ cd macemu/BasiliskII/src/Windows
-$ ../Unix/autogen.sh
-$ make
-```
-#### SheepShaver
-##### macOS
-```
-$ cd macemu/SheepShaver/src/MacOSX
-$ xcodebuild build -project SheepShaver_Xcode8.xcodeproj -configuration Release
-```
-or same as Linux (x86_64 only)
+## Supported configuration
 
-##### Linux(x86/x86_64)
-```
-$ cd macemu/SheepShaver/src/Unix
-$ ./autogen.sh
-$ make
-```
-##### MinGW32/MSYS2
-```
-$ cd macemu/SheepShaver
-$ make links
-$ cd src/Windows
-$ ../Unix/autogen.sh
-$ make
-```
-### Recommended key bindings for gnome
-https://github.com/kanjitalk755/macemu/blob/master/SheepShaver/doc/Linux/gnome_keybindings.txt
+Other configurations may work, but this is what works for me:
 
-(from https://github.com/kanjitalk755/macemu/issues/59)
+  * Linux (I use Fedora `ppc64le` on a Raptor Talos II)
+  * Mac OS 9.0.4 on the guest
+  * Power Macintosh 7300 Old World ROM (though New World ROMs should work, I have better luck with Old World)
+  * Windowed video with SDL 2.x
+
+## Works
+
+  * Basic emulation, including 60Hz video and up to 1GB guest RAM
+  * Link-time optimization by default (pass `--disable-lto` to disable)
+  * CPU-specific compiler flags from `/proc/cpuinfo` (pass `--disable-cpudetect` to disable)
+  * OpenPOWER-enhanced CPU interpreter with accelerated FPU and some GPU operations
+  * Sound, hardware mouse cursor, host file system access, `slirp` networking
+
+## Doesn't work (yet)
+
+  * Big-endian OpenPOWER won't work in non-emulated PPC mode (it _should_ work in emulated PPC mode, but this hasn't been tested)
+  * Basilisk II doesn't function yet
+  * No JIT support (don't even bother turning it on)
+
+## How to build
+
+You'll need SDL 2 (SDL 1.2.x may work but may have problems) and GTK.
+
+`cd SheepShaver/src/Unix`\
+`./configure`\
+`make -j24 # or as you like`
+
+## How to run
+
+Allow low memory to be mapped:
+
+`sudo sysctl vm.mmap_min_addr=0`\
+`sudo setsebool -P mmap_low_allowed 1 # with SELinux`
+
+Start the emulator and configure your guest Mac:
+
+`./SheepShaver`
+
+There are [excellent starting guides](https://www.emaculation.com/doku.php/ubuntu) for using SheepShaver on Linux that in general apply to SheepSforza too. However, only `slirp` networking is currently supported, and until further notice **do not enable the JIT.**
+
+## To do
+
+Roughly in priority order.
+
+  * Write a `ppc64le` JIT
+  * Support for hibernating or suspending emulation
+  * Investigate VMX acceleration for video updates (audio on little-endian is already VMX accelerated)
+  * Improve guest compatibility (for example, there is no supervisor mode or MMU)
+  * Fix Basilisk II (but 68K apps run just fine in SheepSforza)
+
+## Don't ask for support or SheepShaver-general fixes
+
+This is not a supported port of SheepShaver on anything other than OpenPOWER. Issues opened to request SheepShaver compatibility fixes affecting all ports will be closed with prejudice. If we spontaneously work on something like that, consider it a bonus and you're responsible for upstreaming it if you want it on another platform.
+
+(Parenthetically, it is possible to build other, previously supported platforms from SheepSforza. **Please don't.** We don't support that and we don't maintain them, and we may gleefully break them just to make the point if necessary to support our core constituency.)
+
+OpenPOWER-specific problems (things that work on other ports, but not SheepSforza) or feature requests are accepted to the issue tracker, but they may be slowly if ever addressed unless the maintainer(s) think they're worth working on. We may even close issues we think are frivolous, in our sole judgment. If you disagree, then work on it yourself and post a pull request. If you can't do that, then be nice.
