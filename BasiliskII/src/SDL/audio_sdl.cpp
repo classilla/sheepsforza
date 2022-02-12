@@ -257,7 +257,10 @@ static void stream_func(void *arg, uint8 *stream, int stream_len)
 				// are invariably VMX-aligned. work_size
 				// is mostly 16K, and almost always a
 				// multiple of 128.
-				if (!(work_size & 128)) {
+				// I could write this to cascade, but this is
+				// pretty tight code already and it amply
+				// handles the common case.
+				if (!(work_size & 127)) {
 					size_t k = work_size / 128;
 __asm__ volatile(
 				"   mtctr %1\n" // load counter from k
@@ -299,6 +302,23 @@ __asm__ volatile(
 				"   stvx 1, %3, %0\n"
 				"   addi %0, %0, 16\n"
 				"   bdnz .-128\n"
+: "+r"(i)
+: "r"(k), "r"(loc), "r"(audio_mix_buf)
+: "v1","v2","v3","ctr","memory");
+
+				} else if (!(work_size & 15)) {
+					size_t k = work_size / 16;
+__asm__ volatile(
+				"   mtctr %1\n" // load counter from k
+				/* make permute vector to convert endianness */
+				"   lvsl 2,0,%0\n" // LE => fedcba9876543210
+				"   vspltish 3,8\n"
+				"   vrlh 2,2,3\n"  //    => 1032547698badcfe
+				"   lvx 1, %2, %0\n"
+				"   vperm 1,1,1,2\n" // flip it
+				"   stvx 1, %3, %0\n"
+				"   addi %0, %0, 16\n"
+				"   bdnz .-16\n"
 : "+r"(i)
 : "r"(k), "r"(loc), "r"(audio_mix_buf)
 : "v1","v2","v3","ctr","memory");
