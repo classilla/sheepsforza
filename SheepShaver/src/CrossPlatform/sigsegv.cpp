@@ -2754,6 +2754,8 @@ static bool handle_badaccess(SIGSEGV_FAULT_HANDLER_ARGLIST_1)
 		break;
 	}
 
+	if ((unsigned long)SI.addr == 0x96cd9241) return true; // not sure what this is
+
 fprintf(stderr,"unhandled access to address 0x%lx\n", SI.addr);
 	return false;
 }
